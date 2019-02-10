@@ -74,3 +74,5 @@ bool InverseNxN(double **A, int N, double **Ainv);
 
 // helper function for InverseNxN
 void ELGS(double **A, int N, int *indx);
+
+void calculate_answer();

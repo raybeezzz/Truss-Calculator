@@ -12,7 +12,7 @@ vector<MEMBER> mem_vec;
 vector<FORCE> ext_vec;
 vector<FORCE> rxn_vec;
 string units;
-double **M, **Minv, *row, *col, *E;
+double **M, **Minv, *row, *col, *E, *Answer;
 int *indx, N;
 
 
@@ -220,6 +220,7 @@ bool buildSystem()
 
 	M = new double *[N];
 	Minv = new double *[N];
+
 	indx = new int[N];
 	row = new double[N];
 	col = new double[N];
@@ -308,19 +309,6 @@ bool buildSystem()
 		current_joint++;
 
 	}//END WHILE
-
-
-
-
-	cout << "YOU FUCKIONG DID IT";
-	printf("Matrix A:\n");
-	for (int i = 0; i < N; i++)
-	{
-		for (int j = 0; j < N; j++)
-		{
-			printf("% .4lf%c", M[i][j], (j < N - 1 ? '\t' : '\n'));
-		}
-	}
 	return 1;
 }
 
@@ -456,11 +444,45 @@ void ELGS(double **A, int N, int *indx)
 	delete[] c;
 }
 
+void calculate_answer()
+{
+	Answer = new double [N];
+	int i, j, k; //counters to step through loops of multiplying/adding
+	int rows_Mat_A = N; //number of rows of matrix A
+	int col_Mat_A = mem_vec.size() + rxn_vec.size();
+	int rows_Mat_B = col_Mat_A; //number of columns in Matrix a -= number of rows in matrix b
+	float x; //empty solution filler variable
+	for (i = 0; i < rows_Mat_A; i++)
+	{
+		for (j = 0; j < rows_Mat_B; j++)
+		{
+			x = 0;
+			for (k = 0; k < col_Mat_A; k++)
+			{
+				x = x + Minv[i][k] * E[k];
+			}
+			Answer[i] = x;
+		}
+	}
+}
+
 int main() {
 	getTrussData(getTrussSizes(), joint_vec, mem_vec, ext_vec, rxn_vec, units);
 	buildSystem();
 	InverseNxN(M, N, Minv, indx);
+	calculate_answer();
 
+
+	//Print Matrix A
+	printf("Matrix A:\n");
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			printf("% .4lf%c", M[i][j], (j < N - 1 ? '\t' : '\n'));
+		}
+	}
+	//Print Matrix Inverse
 	printf("Matrix A inverse:\n");
 	for (int i = 0; i < N; i++)
 	{
@@ -469,11 +491,66 @@ int main() {
 			printf("% .4lf%c", Minv[i][j], (j < N - 1 ? '\t' : '\n'));
 		}
 	}
+	//Print Matrix E
 	printf("Matrix E:\n");
 	for (int i = 0; i < N; i++)
 	{
 		
 			printf("% .4lf%c", E[i],'\n');
 		
+	}
+	//Print Matrix Answer
+	printf("Reaction Forces Answer:\n");
+	int print_counter = 0;
+	for (int i = 0; i < N; i++)
+	{
+		if (i < rxn_vec.size())
+		{
+			cout << "Member   " << i << ":  F=    ";
+			if (Answer[i] < 0)
+			{
+				Answer[i] = 0 - Answer[i];
+				cout << Answer[i] << " " << units << " [C]" << endl;
+				//printf("% .4lf%c", Answer[i], " %d", units," [C]\n");
+			}
+			else
+			{
+				cout << Answer[i] << " " << units << " [T]" << endl;
+				//printf("% .4lf%c", Answer[i], ' ', units,' ', '[T]', '\n');
+			}
+		}
+		if (i >= rxn_vec.size())
+		{
+			if (rxn_vec[print_counter].idir == 0) 
+			{
+
+				cout << "X-direction reaction on joint " << rxn_vec[print_counter].j << " =  ";
+				if (Answer[i] > 0)
+				{
+					cout << "+";
+				}
+				else
+				{
+					cout << "-";
+				}
+				cout << Answer[i] << " " << units << endl;
+			}
+			else
+			{
+			
+				cout << "Y-direction reaction on joint " << rxn_vec[print_counter].j << " =  ";
+				if (Answer[i] > 0)
+				{
+					cout << "+";
+				}
+				else
+				{
+					cout << "-";
+				}
+				cout << Answer[i] << " " << units << endl;
+			}
+			print_counter++;
+		}
+
 	}
 }
