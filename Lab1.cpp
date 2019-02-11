@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <cmath>
+#include <iomanip>
 
 string filename;
 vector<JOINT> joint_vec;
@@ -469,53 +470,70 @@ void calculate_answer()
 int main() {
 	getTrussData(getTrussSizes(), joint_vec, mem_vec, ext_vec, rxn_vec, units);
 	buildSystem();
-	InverseNxN(M, N, Minv, indx);
-	calculate_answer();
 
 
+	
+	string output_name;
+
+	cout << "What would you like to call output text file? (Exclude .txt)";
+	cin >> output_name;
+	output_name.append(".txt");
+	ofstream outfile(output_name);
+	
+	
+	if (!outfile)
+	{
+		std::cout << "oops, something went wrong! Please contact IT for support" << std::endl;
+		return 0;
+	}
+	//outfile.precision(2);
+	//outfile.setf(ios::fixed);
+	//outfile.setf(ios::showpoint);
 	//Print Matrix A
-	printf("Matrix A:\n");
+	outfile << "Matrix M" << endl << "---------" << endl;
+	printf("Matrix M:\n");
 	for (int i = 0; i < N; i++)
 	{
 		for (int j = 0; j < N; j++)
 		{
-			printf("% .4lf%c", M[i][j], (j < N - 1 ? '\t' : '\n'));
+			
+			if (M[i][j] >= 0)
+			{
+				cout << "+";
+				outfile << "+";
+			}
+			printf("%.2lf%c", M[i][j], (j < N - 1 ? '\t' : '\n')); //help from online - need to cite
+			outfile << fixed << M[i][j] << "\t";
+			
+			if (j >= (N - 1))
+			{
+				outfile << endl;
+			}
 		}
 	}
-	//Print Matrix Inverse
-	printf("Matrix A inverse:\n");
-	for (int i = 0; i < N; i++)
-	{
-		for (int j = 0; j < N; j++)
-		{	
-			printf("% .4lf%c", Minv[i][j], (j < N - 1 ? '\t' : '\n'));
-		}
-	}
-	//Print Matrix E
-	printf("Matrix E:\n");
-	for (int i = 0; i < N; i++)
-	{
-		
-			printf("% .4lf%c", E[i],'\n');
-		
-	}
-	//Print Matrix Answer
-	printf("Reaction Forces Answer:\n");
+
+	InverseNxN(M, N, Minv, indx); //Must be called after printing Matrix M b/c it manipulates Matrix M
+	calculate_answer();
+	printf("\n\nReaction Forces Answer:\n");
 	int print_counter = 0;
+	outfile << endl << endl << endl << "Solution" << endl << " ---------" << endl;
 	for (int i = 0; i < N; i++)
 	{
 		if (i < rxn_vec.size())
 		{
 			cout << "Member   " << i << ":  F=    ";
+			outfile << "Member   " << i << ":  F=    ";
 			if (Answer[i] < 0)
 			{
 				Answer[i] = 0 - Answer[i];
-				cout << Answer[i] << " " << units << " [C]" << endl;
+				cout << fixed << setprecision(2) << Answer[i] << " " << units << " [C]" << endl;
+				outfile << fixed << setprecision(2) << Answer[i] << " " << units << " [C]" << endl;
 				//printf("% .4lf%c", Answer[i], " %d", units," [C]\n");
 			}
 			else
 			{
-				cout << Answer[i] << " " << units << " [T]" << endl;
+				cout << fixed << setprecision(2) << Answer[i] << " " << units << " [T]" << endl;
+				outfile << fixed << setprecision(2) << Answer[i] << " " << units << " [T]" << endl;
 				//printf("% .4lf%c", Answer[i], ' ', units,' ', '[T]', '\n');
 			}
 		}
@@ -525,32 +543,41 @@ int main() {
 			{
 
 				cout << "X-direction reaction on joint " << rxn_vec[print_counter].j << " =  ";
+				outfile << "X-direction reaction on joint " << rxn_vec[print_counter].j << " =  ";
 				if (Answer[i] > 0)
 				{
 					cout << "+";
+					outfile << "+";
 				}
 				else
 				{
 					cout << "-";
+					outfile << "-";
 				}
-				cout << Answer[i] << " " << units << endl;
+				cout << fixed << setprecision(2) << Answer[i] << " " << units << endl;
+				outfile << fixed << setprecision(2) << Answer[i] << " " << units << endl;
 			}
 			else
 			{
 			
 				cout << "Y-direction reaction on joint " << rxn_vec[print_counter].j << " =  ";
+				outfile << "Y-direction reaction on joint " << rxn_vec[print_counter].j << " =  ";
 				if (Answer[i] > 0)
 				{
 					cout << "+";
+					outfile << "+";
 				}
 				else
 				{
 					cout << "-";
+					outfile << "-";
 				}
-				cout << Answer[i] << " " << units << endl;
+				cout << fixed << setprecision(2) << Answer[i] << " " << units << endl;
+				outfile << fixed << setprecision(2) << Answer[i] << " " << units << endl;
 			}
 			print_counter++;
 		}
 
 	}
+	outfile.close();
 }
