@@ -272,12 +272,14 @@ bool buildSystem()
 
 			for (columns; columns < mem_vec.size() + rxn_vec.size(); columns++)
 			{
-				if ((current_joint == rxn_vec[columns - rxn_vec.size()].j) && (rxn_vec[columns - rxn_vec.size()].idir == X_Y)) {
-					M[rows][columns] = 1;
-				}
-				else {
-					M[rows][columns] = 0;
-				}
+				
+					if ((current_joint == rxn_vec[columns - mem_vec.size()].j) && (rxn_vec[columns - mem_vec.size()].idir == X_Y)) { //changed to - mem_vec.size() instead of rxn_vec.size()
+						M[rows][columns] = 1;
+					}
+					else {
+						M[rows][columns] = 0;
+					}
+				
 				//cout << M[rows][columns] << endl;
 			}
 
@@ -519,7 +521,7 @@ int main() {
 	outfile << endl << endl << endl << "Solution" << endl << " ---------" << endl;
 	for (int i = 0; i < N; i++)
 	{
-		if (i < rxn_vec.size())
+		if (i < mem_vec.size())
 		{
 			cout << "Member   " << i << ":  F=    ";
 			outfile << "Member   " << i << ":  F=    ";
@@ -537,22 +539,22 @@ int main() {
 				//printf("% .4lf%c", Answer[i], ' ', units,' ', '[T]', '\n');
 			}
 		}
-		if (i >= rxn_vec.size())
+		if (i >= mem_vec.size())
 		{
 			if (rxn_vec[print_counter].idir == 0) 
 			{
 
 				cout << "X-direction reaction on joint " << rxn_vec[print_counter].j << " =  ";
 				outfile << "X-direction reaction on joint " << rxn_vec[print_counter].j << " =  ";
-				if (Answer[i] > 0)
+				if (Answer[i] >= 0)
 				{
 					cout << "+";
 					outfile << "+";
 				}
 				else
 				{
-					cout << "-";
-					outfile << "-";
+					//cout << "-";
+					//outfile << "-";
 				}
 				cout << fixed << setprecision(2) << Answer[i] << " " << units << endl;
 				outfile << fixed << setprecision(2) << Answer[i] << " " << units << endl;
