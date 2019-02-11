@@ -7,19 +7,24 @@
 #include <cmath>
 #include <iomanip>
 
-//
+//string for storing name of file to load to run program with
 string filename;
+//creation of vectors:
 vector<JOINT> joint_vec;
 vector<MEMBER> mem_vec;
 vector<FORCE> ext_vec;
 vector<FORCE> rxn_vec;
+//creation of string for storing units used in calculations
 string units;
+//creation of global double pointer and single pointer Arrays to store data
 double **M, **Minv, *row, *col, *E, *Answer;
 int *indx, N;
 
+using namespace std; //using namespace std to make code more readable
 
-using namespace std;
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Function to get Truss Size and store that information into vectors declared above.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 TRUSS_SIZES getTrussSizes()
 {
 
@@ -91,6 +96,9 @@ TRUSS_SIZES getTrussSizes()
 
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Function to get Truss information and data and store that information into vectors declared above.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void getTrussData(TRUSS_SIZES ts, vector<JOINT> Jf, vector<MEMBER> Mf, vector<FORCE> Ef,
 	vector<FORCE> Rf, string strUnits)
 {
@@ -130,7 +138,7 @@ void getTrussData(TRUSS_SIZES ts, vector<JOINT> Jf, vector<MEMBER> Mf, vector<FO
 				Jf.push_back(new_joint);
 			}
 			joint_vec = Jf;
-			header_pos++;
+			header_pos++; //increment header position to find next header on next iteration of struct
 			break;
 		case 1:
 			getline(get_truss, line);//get next line of data and store it into line
@@ -143,10 +151,11 @@ void getTrussData(TRUSS_SIZES ts, vector<JOINT> Jf, vector<MEMBER> Mf, vector<FO
 				Mf.push_back(new_member);
 			}
 			mem_vec = Mf;
-			header_pos++;
+			header_pos++; //increment header position to find next header on next iteration of struct
 			break;
 		case 2:
-			getline(get_truss, line);
+			getline(get_truss, line);//get next line of data and store it into line
+			//while loop for reaction forces vector loading
 			while (!line.empty())//while next line is not empty
 			{
 				FORCE rxn;
@@ -163,9 +172,9 @@ void getTrussData(TRUSS_SIZES ts, vector<JOINT> Jf, vector<MEMBER> Mf, vector<FO
 				}
 				getline(get_truss, line);//get next line of data and store it into line
 				Rf.push_back(rxn);
-			}
-			rxn_vec = Rf;
-			header_pos++;
+			}//end while loop for reaction forces vector loading
+			rxn_vec = Rf; //make rxn_vec = Rf
+			header_pos++; //increment header position to find next header on next iteration of struct
 			break;
 		case 3:
 			getline(get_truss, line);//get next line of data and store it into line
@@ -176,7 +185,8 @@ void getTrussData(TRUSS_SIZES ts, vector<JOINT> Jf, vector<MEMBER> Mf, vector<FO
 				char dir; //variable to store direction of force
 				stringstream temp3(line); //creation of a stream for this sections data
 				temp3 >> index >> ext.j >> ext.F >> dir; //loading of data into appropriate variables
-				if (dir == 'X') {
+				if (dir == 'X')
+				{
 					ext.idir = 0;
 				}
 				else {
@@ -186,14 +196,14 @@ void getTrussData(TRUSS_SIZES ts, vector<JOINT> Jf, vector<MEMBER> Mf, vector<FO
 				Ef.push_back(ext);
 			}//end while for external forces vector loading
 			ext_vec = Ef;
-			header_pos++;
+			header_pos++; //increment header position to find next header on next iteration of struct
 			break;
 		case 4:
 			getline(get_truss, line);//get next line of data and store it into line
 			stringstream temp4(line);
 			temp4 >> units; //store units string into variable
 			getline(get_truss, line); //get next line of data and store it into line
-			header_pos++; //increment header position
+			header_pos++; //increment header position to find next header on next iteration of struct
 			break;
 		}//end switch
 	}//end while
