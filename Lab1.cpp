@@ -9,7 +9,7 @@
 
 //string for storing name of file to load to run program with
 string filename;
-//creation of vectors:
+//creation of vectors for reactions, joints, members, and external forces:
 vector<JOINT> joint_vec;
 vector<MEMBER> mem_vec;
 vector<FORCE> ext_vec;
@@ -23,77 +23,83 @@ int *indx, N;
 using namespace std; //using namespace std to make code more readable
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//Function to get Truss Size and store that information into vectors declared above.
+//Function to get Truss Size and store that information into vectors. Must be in specific order of: Joint coord,
+//Member connectivity, reactions, external forces with empty line seperating new header
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 TRUSS_SIZES getTrussSizes()
 {
-
-	string line;
-	int joint_size = 0;
+	string line; //temp size to store line of data onto
+	//initialization of all sizes of forces & members to 0:
+	int joint_size = 0; 
 	int member_size = 0;
 	int rxn_size = 0;
 	int ext_size = 0;
 
-	ifstream truss_size;
+	ifstream truss_size; //creation of input file stream
 
-	while (1) {
+	//Loading of file, while returning error if file not found:
+	while (1) 
+	{
 		cout << "Name of file to load: ";
-		cin >> filename;
-
-		truss_size.open(filename);
-
+		cin >> filename; //ask for user input of file name
+		truss_size.open(filename); //open file by name input by user
 		if (truss_size.is_open()) {
 			cout << "File loaded!" << endl;
 			break;
-		}
-		else {
+		}//end if
+		else 
+		{
 			cout << "File not found, try again" << endl;
-		}
-	}
-
-	getline(truss_size, line);
-	line.find(JOINT_COORDINATE_HEADER);
-	truss_size.ignore(256, '\n');
-
+		}//end else
+	}//end while(1) loop
+	getline(truss_size, line); //get line of data
+	line.find(JOINT_COORDINATE_HEADER); //search for header in line retrieved
+	truss_size.ignore(256, '\n'); //ignore header
+	//increment joint vector size while the next line of data is not empty 
 	while (!line.empty())
 	{
 		getline(truss_size, line);
 		joint_size++;
 	}
+	getline(truss_size, line);//get line of data
+	line.find(MEMBER_CONNECTIVITY_HEADER); //search for header in line retrieved
+	truss_size.ignore(256, '\n');//ignore header
 
-
-	getline(truss_size, line);
-	line.find(MEMBER_CONNECTIVITY_HEADER);
-	truss_size.ignore(256, '\n');
-
-	while (!line.empty()) {
+	//increment member vector size while the next line of data is not empty: 
+	while (!line.empty()) 
+	{
 		getline(truss_size, line);
 		member_size++;
-	}
+	}//end while
+	getline(truss_size, line);//get line of data
+	line.find(REACTIONS_HEADER); //search for header in line retrieved
+	truss_size.ignore(256, '\n');//ignore header
 
-	getline(truss_size, line);
-	line.find(REACTIONS_HEADER);
-	truss_size.ignore(256, '\n');
-	while (!line.empty()) {
+	//increment reaction vector size while the next line of data is not empty:
+	while (!line.empty()) 
+	{
 		getline(truss_size, line);
 		rxn_size++;
-	}
+	}//end while
+	getline(truss_size, line);//get line of data
+	line.find(EXTERNAL_FORCES_HEADER); //search for header in line retrieved
+	truss_size.ignore(256, '\n');//ignore header
 
-	getline(truss_size, line);
-	line.find(EXTERNAL_FORCES_HEADER);
-	truss_size.ignore(256, '\n');
-	while (!line.empty()) {
+	//increment external vector size while the next line of data is not empty:
+	while (!line.empty())
+	{
 		getline(truss_size, line);
 		ext_size++;
-	}
+	}//end while
+
+	//creation of sttucture of Truss Sizes declared in header and loading with sizes of vectors
 	TRUSS_SIZES truss;
 	truss.NJ = joint_size;
 	truss.NM = member_size;
 	truss.NR = rxn_size;
 	truss.NEF = ext_size;
 
-	return truss;
-
+	return truss; //return truss structure
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -119,7 +125,6 @@ void getTrussData(TRUSS_SIZES ts, vector<JOINT> Jf, vector<MEMBER> Mf, vector<FO
 	//While loop for going through all headers in text file
 	while (header_pos < headers.size())
 	{
-		//stringstream temp(line);
 		getline(get_truss, line);//get next line of data and store it into line
 		if (line.empty())//while next line is not empty
 		{
@@ -137,7 +142,7 @@ void getTrussData(TRUSS_SIZES ts, vector<JOINT> Jf, vector<MEMBER> Mf, vector<FO
 				getline(get_truss, line);//get next line of data and store it into line
 				Jf.push_back(new_joint);
 			}
-			joint_vec = Jf;
+			joint_vec = Jf; //push temporary vector into proper global vector
 			header_pos++; //increment header position to find next header on next iteration of struct
 			break;
 		case 1:
@@ -150,7 +155,7 @@ void getTrussData(TRUSS_SIZES ts, vector<JOINT> Jf, vector<MEMBER> Mf, vector<FO
 				getline(get_truss, line);//get next line of data and store it into line
 				Mf.push_back(new_member);
 			}
-			mem_vec = Mf;
+			mem_vec = Mf;//push temporary vector into proper global vector
 			header_pos++; //increment header position to find next header on next iteration of struct
 			break;
 		case 2:
@@ -171,7 +176,7 @@ void getTrussData(TRUSS_SIZES ts, vector<JOINT> Jf, vector<MEMBER> Mf, vector<FO
 					rxn.idir = 1;
 				}
 				getline(get_truss, line);//get next line of data and store it into line
-				Rf.push_back(rxn);
+				Rf.push_back(rxn);//push temporary vector into proper global vector
 			}//end while loop for reaction forces vector loading
 			rxn_vec = Rf; //make rxn_vec = Rf
 			header_pos++; //increment header position to find next header on next iteration of struct
@@ -195,7 +200,7 @@ void getTrussData(TRUSS_SIZES ts, vector<JOINT> Jf, vector<MEMBER> Mf, vector<FO
 				getline(get_truss, line);//get next line of data and store it into line
 				Ef.push_back(ext);
 			}//end while for external forces vector loading
-			ext_vec = Ef;
+			ext_vec = Ef;//push temporary vector into proper global vector
 			header_pos++; //increment header position to find next header on next iteration of struct
 			break;
 		case 4:
@@ -209,6 +214,10 @@ void getTrussData(TRUSS_SIZES ts, vector<JOINT> Jf, vector<MEMBER> Mf, vector<FO
 	}//end while
 }//end getTrussData
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Function that builds the Matrix that will be used for calculations and the inverse
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool buildSystem()
 {
 	int rows = 0;
@@ -218,7 +227,9 @@ bool buildSystem()
 	int counter = 0;
 	int X_Y;
 	int start_joint, end_joint;
-	N = (joint_vec.size() * 2);
+	N = (joint_vec.size() * 2); //N is equal to the number of joints x 2. This wil be used for stepping through matrix
+
+	//decleration of arrays that will be combined to create Matrices that are stored globally:
 	E = new double[N];
 	M = new double *[N];
 	Minv = new double *[N];
@@ -234,27 +245,23 @@ bool buildSystem()
 	}
 
 	//Building of Matrix M:
-	while (rows < N)
+	while (rows < N) //while rows are less than amount of 
 	{
-
 		for (X_Y = 0; X_Y <= 1; X_Y++)
 		{
-
-			for (columns; columns < mem_vec.size(); columns++) {
-
+			for (columns; columns < mem_vec.size(); columns++) 
+			{
 				if (current_joint == mem_vec[columns].j[0]) //if recorded correctly, proceed
 				{
 					start_joint = mem_vec[columns].j[0];
 					end_joint = mem_vec[columns].j[1];
 				}
-				else	//if recorded reverse, flip the direction
+				else	//if recorded reverse, flip the direction of the joint connectivity  -- inspiration from Andrew
 				{
 					start_joint = mem_vec[columns].j[1];
 					end_joint = mem_vec[columns].j[0];
 				}
 
-				//for (columns; columns < (mem_vec.size() + rxn_vec.size()); columns++)
-				//{
 				if ((current_joint == start_joint) || (current_joint == end_joint))
 				{
 					length = sqrt((pow((joint_vec[end_joint].p[0] - joint_vec[start_joint].p[0]), 2.0) + 
@@ -264,11 +271,8 @@ bool buildSystem()
 				}
 				else
 				{
-					M[rows][columns] = 0;
-					//}
-
+					M[rows][columns] = 0; // if it is not attached to the current joint, mark that place in the matrix as 0
 				}
-				//cout << M[rows][columns] << endl;
 			}
 
 			for (columns; columns < mem_vec.size() + rxn_vec.size(); columns++)
@@ -438,14 +442,21 @@ void ELGS(double **A, int N, int *indx)
 	delete[] c;
 }
 
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Function to calculate the resultant matrix between Minv and E
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void calculate_answer()
 {
-	Answer = new double [N];
+	Answer = new double [N];//creation of a new array that can be used for storing the result of this function
 	int i, j, k; //counters to step through loops of multiplying/adding
 	int rows_Mat_A = N; //number of rows of matrix A
-	int col_Mat_A = mem_vec.size() + rxn_vec.size();
+	int col_Mat_A = mem_vec.size() + rxn_vec.size(); //how many rows will be present in matrix A
 	int rows_Mat_B = col_Mat_A; //number of columns in Matrix a -= number of rows in matrix b
 	float x; //empty solution filler variable
+	//step through multiplication of Minv with E
 	for (i = 0; i < rows_Mat_A; i++)
 	{
 		for (j = 0; j < rows_Mat_B; j++)
@@ -460,21 +471,30 @@ void calculate_answer()
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Main Function
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 int main() {
-	getTrussData(getTrussSizes(), joint_vec, mem_vec, ext_vec, rxn_vec, units);
-	buildSystem();
-	string output_name;
+	getTrussData(getTrussSizes(), joint_vec, mem_vec, ext_vec, rxn_vec, units); //determining Truss Data
+	buildSystem();//building of matrix
+
+	//Creating of file to store calculation/result into:
+	string output_name; 
 	cout << "What would you like to call output text file? (Exclude .txt)";
 	cin >> output_name;
 	output_name.append(".txt");
 	ofstream outfile(output_name);
+
+	//if file not loaded correctly, report it:
 	if (!outfile)
 	{
-		std::cout << "oops, something went wrong! Please contact IT for support" << std::endl;
+		std::cout << "oops, something went wrong! Ensure no spaces in filename. Try again. " << std::endl;
 		return 0;
 	}
-	outfile << "Matrix M" << endl << "---------" << endl;
+	outfile << "Matrix M" << endl << "---------" << endl; //formatting of output file
 	printf("Matrix M:\n");
+	//printing and outputting to file of Matrix:
 	for (int i = 0; i < N; i++)
 	{
 		for (int j = 0; j < N; j++)
@@ -484,9 +504,8 @@ int main() {
 				cout << "+";
 				outfile << "+";
 			}
-			printf("%.2lf%c", M[i][j], (j < N - 1 ? '\t' : '\n'));//http://www.angelfire.com/oh4/psychfea/source.htm
-			outfile << fixed << M[i][j] << "\t";
-			
+			printf("%.2f%c", M[i][j], (j < N - 1 ? '   ' : '\n'));
+			outfile << fixed << M[i][j] << "   ";
 			if (j >= (N - 1))
 			{
 				outfile << endl;
@@ -498,26 +517,24 @@ int main() {
 
 	//Printing and Saving of Reaction and Member Forces to text file:
 	printf("\n\nReaction and Member Forces:\n");
-	int print_counter = 0;
-	outfile << endl << endl << endl << "Solution" << endl << " ---------" << endl;
+	int print_counter = 0; //variable to help step through reaction and member vectors in printing
+	outfile << endl << endl << endl << "Solution" << endl << " ---------" << endl; //formatting of output file
 	for (int i = 0; i < N; i++)
 	{
 		if (i < mem_vec.size())
 		{
 			cout << "Member   " << i << ":  F=    ";
 			outfile << "Member   " << i << ":  F=    ";
-			if (Answer[i] < 0)
+			if (Answer[i] < 0)//if negative answer, print in compression
 			{
 				Answer[i] = 0 - Answer[i];
 				cout << fixed << setprecision(2) << Answer[i] << " " << units << " [C]" << endl;
 				outfile << fixed << setprecision(2) << Answer[i] << " " << units << " [C]" << endl;
-				//printf("% .4lf%c", Answer[i], " %d", units," [C]\n");
 			}
-			else
+			else //print result as in tension
 			{
 				cout << fixed << setprecision(2) << Answer[i] << " " << units << " [T]" << endl;
 				outfile << fixed << setprecision(2) << Answer[i] << " " << units << " [T]" << endl;
-				//printf("% .4lf%c", Answer[i], ' ', units,' ', '[T]', '\n');
 			}
 		}
 		if (i >= mem_vec.size())
@@ -526,16 +543,13 @@ int main() {
 			{
 				cout << "X-direction reaction on joint " << rxn_vec[print_counter].j << " =  ";
 				outfile << "X-direction reaction on joint " << rxn_vec[print_counter].j << " =  ";
+				//add + sign to positive answers for consistency:
 				if (Answer[i] >= 0)
 				{
 					cout << "+";
 					outfile << "+";
 				}
-				else
-				{
-					//cout << "-";
-					//outfile << "-";
-				}
+				//formatting of decimal places on answers:
 				cout << fixed << setprecision(2) << Answer[i] << " " << units << endl;
 				outfile << fixed << setprecision(2) << Answer[i] << " " << units << endl;
 			}
@@ -543,21 +557,23 @@ int main() {
 			{
 				cout << "Y-direction reaction on joint " << rxn_vec[print_counter].j << " =  ";
 				outfile << "Y-direction reaction on joint " << rxn_vec[print_counter].j << " =  ";
+				//add + sign to positive answers for consistency:
 				if (Answer[i] > 0)
 				{
 					cout << "+";
 					outfile << "+";
 				}
-				else
+				else //add negative sign to negative answers:
 				{
 					cout << "-";
 					outfile << "-";
 				}
+				//formatting of decimal places on answers:
 				cout << fixed << setprecision(2) << Answer[i] << " " << units << endl;
 				outfile << fixed << setprecision(2) << Answer[i] << " " << units << endl;
 			}
 			print_counter++;
 		}
 	}
-	outfile.close();
+	outfile.close(); //close output file so that it is saved without corrupting
 }
